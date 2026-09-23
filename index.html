@@ -25,7 +25,11 @@
                 <span class="text-[10px] text-slate-400">Street Field Tracker</span>
             </div>
         </div>
-        <span class="text-xs bg-slate-800 px-2 py-1 rounded-lg text-slate-300 border border-slate-700" id="username">Рыбак</span>
+        <!-- Кликабельная кнопка профиля -->
+        <button id="openProfileBtn" class="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 transition px-2.5 py-1.5 rounded-xl text-slate-200 border border-slate-700 shadow-sm cursor-pointer">
+            <i class="fa-solid fa-user-circle text-amber-400 text-sm"></i>
+            <span id="username">Рыбак</span>
+        </button>
     </div>
 
     <!-- ВКЛАДКА 1: Форма добавления подхода -->
@@ -78,7 +82,6 @@
                     <label class="block text-xs text-slate-400 mb-1">Фото девушки (Опционально)</label>
                     <input type="file" id="photoInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-amber-400 hover:file:bg-slate-600 cursor-pointer bg-slate-700/30 rounded-xl p-1 border border-slate-600/50">
                     
-                    <!-- Предосмотр загруженной фотографии -->
                     <div id="photoPreviewContainer" class="mt-2 hidden relative w-24 h-24 rounded-xl overflow-hidden border-2 border-amber-500/50 shadow-md">
                         <img id="photoPreviewImg" src="" class="w-full h-full object-cover">
                         <button type="button" id="removePhotoBtn" class="absolute top-1 right-1 bg-slate-900/80 text-rose-400 w-5 h-5 rounded-full flex items-center justify-center text-[10px] hover:bg-slate-900">
@@ -102,7 +105,6 @@
     <!-- ВКЛАДКА 2: Календарь и История -->
     <div id="tabCalendar" class="tab-content hidden space-y-4">
         
-       <!-- Виджет «Календарь Клёва» (Кликабельный) -->
         <div onclick="openFullCalendar()" class="bg-slate-800/80 border border-slate-700/80 hover:border-amber-500/50 cursor-pointer active:scale-[0.99] transition rounded-2xl p-3.5 shadow-md">
             <div class="flex items-center justify-between mb-2.5">
                 <span class="font-bold text-xs text-slate-200 flex items-center gap-1.5">
@@ -113,7 +115,6 @@
                 </span>
             </div>
 
-            <!-- Горизонтальная лента дней текущей недели -->
             <div id="weekDaysContainer" class="grid grid-cols-7 gap-1 text-center">
                 <!-- Заполняется JS -->
             </div>
@@ -126,6 +127,85 @@
         
         <div id="historyList" class="space-y-4">
             <!-- Динамическая история -->
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ И СТАТИСТИКИ -->
+    <div id="profileModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex flex-col p-4 hidden overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🏆</span>
+                <h3 class="font-bold text-base text-amber-400">Профиль Рыбака</h3>
+            </div>
+            <button id="closeProfileBtn" class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Шапка Профиля -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-lg mb-4 flex items-center space-x-4">
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-2xl text-amber-400 font-bold shadow-md">
+                <i class="fa-solid fa-user-ninja"></i>
+            </div>
+            <div>
+                <h2 id="profileName" class="font-extrabold text-lg text-white leading-tight">Рыбак</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Охотник за ТГ</span>
+                    <span id="profileConversion" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">0% Winrate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Виджет Текущей / Последней Рыбалки -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 shadow-md mb-4 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-stopwatch text-amber-400"></i> Статус Рыбалки
+                </span>
+                <span id="fishingBadge" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-700 text-slate-400">Нет активности</span>
+            </div>
+            
+            <div id="fishingTimerContent" class="space-y-1">
+                <div id="fishingMainText" class="text-xs text-slate-400">Ближайших запланированных выходов нет.</div>
+                <div id="fishingCountdown" class="text-xl font-extrabold text-amber-400 font-mono hidden">--:--:--</div>
+            </div>
+        </div>
+
+        <!-- Сборная Статистика -->
+        <h4 class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-pie text-amber-400"></i> Сводка эффективности
+        </h4>
+
+        <div class="grid grid-cols-2 gap-2.5 mb-4">
+            <div class="bg-slate-800 border border-slate-700/80 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-slate-400">Всего подходов</span>
+                <span id="statTotal" class="text-2xl font-black text-white mt-1">0</span>
+            </div>
+
+            <div class="bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-emerald-400">🟢 Взято ТГ</span>
+                <span id="statSuccess" class="text-2xl font-black text-emerald-400 mt-1">0</span>
+            </div>
+
+            <div class="bg-rose-950/20 border border-rose-500/30 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-rose-400">🔴 Отшивы</span>
+                <span id="statReject" class="text-2xl font-black text-rose-400 mt-1">0</span>
+            </div>
+
+            <div class="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-slate-300">⚪ Игнор</span>
+                <span id="statIgnore" class="text-2xl font-black text-slate-300 mt-1">0</span>
+            </div>
+
+            <div class="bg-amber-950/20 border border-amber-500/30 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-amber-400">🟡 Свидания (Выгулял)</span>
+                <span id="statDate" class="text-2xl font-black text-amber-400 mt-1">0</span>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700/80 p-3 rounded-2xl flex flex-col justify-between">
+                <span class="text-[11px] text-slate-400">⭐ Средняя оценка</span>
+                <span id="statAvgRating" class="text-2xl font-black text-amber-400 mt-1">0.0</span>
+            </div>
         </div>
     </div>
 
@@ -248,9 +328,8 @@
         </div>
     </div>
 
-    <!-- ПОЛНОЭКРАННЫЙ КАЛЕНДАРЬ (МОДАЛЬНОЕ ОКНО) -->
+    <!-- ПОЛНОЭКРАННЫЙ КАЛЕНДАРЬ -->
     <div id="fullCalendarModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex flex-col p-4 hidden overflow-y-auto">
-        <!-- Шапка окна -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
             <div class="flex items-center space-x-2">
                 <span class="text-xl">📅</span>
@@ -261,14 +340,12 @@
             </button>
         </div>
 
-        <!-- Переключатель месяцев -->
         <div class="flex items-center justify-between mb-4 bg-slate-800 p-2.5 rounded-xl border border-slate-700">
             <button id="prevMonthBtn" class="text-amber-400 p-1 hover:bg-slate-700 rounded-lg transition"><i class="fa-solid fa-chevron-left"></i></button>
             <span id="calendarMonthTitle" class="font-bold text-sm text-slate-200">Сентябрь 2026</span>
             <button id="nextMonthBtn" class="text-amber-400 p-1 hover:bg-slate-700 rounded-lg transition"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
-        <!-- Сетка календаря -->
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 shadow-xl mb-4">
             <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-2">
                 <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span class="text-emerald-400">Сб</span><span class="text-emerald-400">Вс</span>
@@ -278,7 +355,6 @@
             </div>
         </div>
 
-        <!-- Запланированные рыбалки -->
         <div class="space-y-2 flex-1">
             <h4 class="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Запланированные выходы
@@ -333,7 +409,7 @@
             </button>
         </div>
         <div class="text-[10px] text-slate-500 font-mono pt-0.5">
-            @fishingvlgbot • <span class="text-amber-500/80 font-bold">v0.2</span>
+            @fishingvlgbot • <span class="text-amber-500/80 font-bold">v0.3</span>
         </div>
     </div>
 
@@ -345,14 +421,16 @@
         let userId = null;
         let userName = "Рыбак";
         let currentActiveItem = null;
+        let timerInterval = null;
 
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userId = tg.initDataUnsafe.user.id;
-            userName = tg.initDataUnsafe.user.first_name;
+            userName = tg.initDataUnsafe.user.first_name || "Рыбак";
             document.getElementById('username').innerText = userName;
+            document.getElementById('profileName').innerText = userName;
         }
 
-        // Переключение вкладок
+        // Вкладки
         const navFormBtn = document.getElementById('navFormBtn');
         const navCalendarBtn = document.getElementById('navCalendarBtn');
         const tabForm = document.getElementById('tabForm');
@@ -378,7 +456,144 @@
             renderCalendar();
         });
 
-        // Обработка Предосмотра Фотографии
+        // Открытие / Закрытие Профиля
+        document.getElementById('openProfileBtn').addEventListener('click', () => {
+            renderProfileStats();
+            document.getElementById('profileModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeProfileBtn').addEventListener('click', () => {
+            document.getElementById('profileModal').classList.add('hidden');
+            if (timerInterval) clearInterval(timerInterval);
+        });
+
+        // Расчет Статистики Профиля
+        function renderProfileStats() {
+            const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
+            
+            const total = history.length;
+            const success = history.filter(x => x.status === 'success').length;
+            const reject = history.filter(x => x.status === 'reject').length;
+            const ignore = history.filter(x => x.status === 'ignore').length;
+            const dateCount = history.filter(x => x.status === 'date').length;
+
+            let totalRating = 0;
+            history.forEach(x => { totalRating += parseFloat(x.rating || 8); });
+            const avgRating = total > 0 ? (totalRating / total).toFixed(1) : '0.0';
+
+            const conversion = total > 0 ? Math.round((success / total) * 100) : 0;
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statSuccess').innerText = success;
+            document.getElementById('statReject').innerText = reject;
+            document.getElementById('statIgnore').innerText = ignore;
+            document.getElementById('statDate').innerText = dateCount;
+            document.getElementById('statAvgRating').innerText = avgRating;
+            document.getElementById('profileConversion').innerText = `${conversion}% Winrate`;
+
+            updateFishingStatus();
+        }
+
+        // Обновление Таймера и Статуса Рыбалки
+        function updateFishingStatus() {
+            const plannedList = JSON.parse(localStorage.getItem('planned_fishing') || '[]');
+            const badge = document.getElementById('fishingBadge');
+            const mainText = document.getElementById('fishingMainText');
+            const countdown = document.getElementById('fishingCountdown');
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            if (plannedList.length === 0) {
+                badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-700 text-slate-400";
+                badge.innerText = "Нет планов";
+                mainText.innerText = "Запланированных рыбалок пока нет.";
+                countdown.classList.add('hidden');
+                return;
+            }
+
+            // Находим ближайшую рыбалку
+            const now = new Date();
+            let closestPlan = null;
+            let closestDiff = Infinity;
+
+            plannedList.forEach(p => {
+                const parts = p.date.split('.');
+                if(parts.length === 3) {
+                    const planDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${p.time}:00`);
+                    const diff = planDate - now;
+                    // Ищем активную сейчас или ближайшую будущую
+                    if (diff > -6 * 3600 * 1000 && diff < closestDiff) {
+                        closestDiff = diff;
+                        closestPlan = { ...p, fullDate: planDate };
+                    }
+                }
+            });
+
+            if (!closestPlan) {
+                badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-700 text-slate-400";
+                badge.innerText = "Завершено";
+                mainText.innerText = "Все запланированные выходы завершены.";
+                countdown.classList.add('hidden');
+                return;
+            }
+
+            const startMs = closestPlan.fullDate.getTime();
+            const endMs = startMs + (6 * 3600 * 1000); // Сессия длится 6 часов
+
+            function tick() {
+                const currentTime = new Date().getTime();
+
+                if (currentTime >= startMs && currentTime <= endMs) {
+                    // РЫБАЛКА ИДЕТ ПРЯМО СЕЙЧАС (6 часовой таймер)
+                    badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse";
+                    badge.innerText = "🎣 В ПРОЦЕССЕ (ИДЕТ)";
+                    mainText.innerText = `Локация: ${closestPlan.location}. Осталось времени:`;
+                    
+                    const left = endMs - currentTime;
+                    countdown.innerText = formatTimeLeft(left);
+                    countdown.classList.remove('hidden');
+
+                } else if (currentTime < startMs) {
+                    const diffHours = (startMs - currentTime) / (1000 * 3600);
+                    
+                    if (diffHours <= 6) {
+                        // ДО НАЧАЛА МЕНЕЕ 6 ЧАСОВ
+                        badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                        badge.innerText = "⏳ СКОРО НАЧАЛО";
+                        mainText.innerText = `Выход в ${closestPlan.time} (${closestPlan.location}). Старт через:`;
+                        
+                        const left = startMs - currentTime;
+                        countdown.innerText = formatTimeLeft(left);
+                        countdown.classList.remove('hidden');
+                    } else {
+                        // БУДУЩАЯ РЫБАЛКА (Более 6 часов)
+                        badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30";
+                        badge.innerText = "📅 ЗАПЛАНИРОВАНО";
+                        mainText.innerText = `Ближайшая: ${closestPlan.date} в ${closestPlan.time} (${closestPlan.location})`;
+                        countdown.classList.add('hidden');
+                    }
+                } else {
+                    badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-700 text-slate-400";
+                    badge.innerText = "Завершено";
+                    mainText.innerText = "Рыбалка окончена.";
+                    countdown.classList.add('hidden');
+                    clearInterval(timerInterval);
+                }
+            }
+
+            tick();
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        function formatTimeLeft(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const hrs = Math.floor(totalSec / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Предосмотр фото
         const photoInput = document.getElementById('photoInput');
         const photoPreviewContainer = document.getElementById('photoPreviewContainer');
         const photoPreviewImg = document.getElementById('photoPreviewImg');
@@ -420,13 +635,12 @@
             localStorage.setItem('fishing_approaches', JSON.stringify(history));
         }
 
-        // Рендер горизонтального календаря недели
         function renderWeekDays() {
             const container = document.getElementById('weekDaysContainer');
             if (!container) return;
 
             const now = new Date();
-            const currentDayOfWeek = now.getDay(); // 0 - Вс, 1 - Пн ...
+            const currentDayOfWeek = now.getDay();
             const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
             
             const monday = new Date(now);
@@ -444,12 +658,8 @@
                 const isToday = date.toDateString() === now.toDateString();
 
                 let cellStyle = 'bg-slate-700/40 border-slate-700 text-slate-300';
-                if (isWeekend) {
-                    cellStyle = 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400';
-                }
-                if (isToday) {
-                    cellStyle = 'bg-amber-500/20 border-amber-500 text-amber-400 font-bold';
-                }
+                if (isWeekend) cellStyle = 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400';
+                if (isToday) cellStyle = 'bg-amber-500/20 border-amber-500 text-amber-400 font-bold';
 
                 html += `
                     <div class="flex flex-col items-center p-1.5 rounded-xl border ${cellStyle}">
@@ -458,14 +668,12 @@
                     </div>
                 `;
             }
-
             container.innerHTML = html;
         }
 
         let currentCalendarDate = new Date();
         let selectedPlanDate = null;
 
-        // Открытие полноэкранного календаря
         window.openFullCalendar = function() {
             document.getElementById('fullCalendarModal').classList.remove('hidden');
             renderFullMonthCalendar();
@@ -486,11 +694,9 @@
             renderFullMonthCalendar();
         });
 
-        // Рендер месяца
         function renderFullMonthCalendar() {
             const year = currentCalendarDate.getFullYear();
             const month = currentCalendarDate.getMonth();
-
             const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
             document.getElementById('calendarMonthTitle').innerText = `${monthNames[month]} ${year}`;
 
@@ -532,7 +738,6 @@
             }
         }
 
-        // Открытие формы планирования
         window.openPlanModal = function(dateStr) {
             selectedPlanDate = dateStr;
             document.getElementById('planDateInput').value = dateStr;
@@ -543,10 +748,8 @@
             document.getElementById('planFishingModal').classList.add('hidden');
         });
 
-        // Сохранение плана и отправка в ТГ
         document.getElementById('planFishingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const time = document.getElementById('planTimeInput').value;
             const location = document.getElementById('planLocationInput').value || 'Не указана';
 
@@ -584,7 +787,6 @@
             renderPlannedFishingList();
         });
 
-        // Рендер списка запланированных рыбалок
         function renderPlannedFishingList() {
             const container = document.getElementById('plannedFishingList');
             const plannedList = JSON.parse(localStorage.getItem('planned_fishing') || '[]');
@@ -616,8 +818,7 @@
             renderFullMonthCalendar();
             renderPlannedFishingList();
         };
-        
-        // Рендер Календаря
+
         function renderCalendar() {
             const historyList = document.getElementById('historyList');
             const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
@@ -703,7 +904,6 @@
             historyList.innerHTML = html;
         }
 
-        // Подробный просмотр
         window.openViewModal = function(id) {
             const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
             const item = history.find(x => x.id === id);
@@ -716,14 +916,12 @@
             document.getElementById('viewNote').innerText = item.note || 'Заметка не оставлена.';
             document.getElementById('viewRating').innerText = `${item.rating || '8'} / 10 ⭐`;
 
-            // Статус
             const badgeContainer = document.getElementById('viewStatusBadge');
             if (item.status === 'success') badgeContainer.innerHTML = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟢 Дала ТГ</span>';
             else if (item.status === 'reject') badgeContainer.innerHTML = '<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🔴 Отшив / Отказ</span>';
             else if (item.status === 'ignore') badgeContainer.innerHTML = '<span class="bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">⚪ Игнор</span>';
             else badgeContainer.innerHTML = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟡 Выгулял рыбку 🎣</span>';
 
-            // ТГ
             const tgContainer = document.getElementById('viewTg');
             if (item.telegram) {
                 let cleanTg = item.telegram.replace('@', '').trim();
@@ -732,7 +930,6 @@
                 tgContainer.innerText = 'Не указан';
             }
 
-            // Аватарка
             const avatarContainer = document.getElementById('viewAvatarContainer');
             if (item.photo) {
                 avatarContainer.innerHTML = `<img src="${item.photo}" class="w-full h-full object-cover">`;
@@ -752,7 +949,6 @@
             if (currentActiveItem) openEditModal(currentActiveItem.id);
         });
 
-        // Открытие модалки редактирования
         window.openEditModal = function(id) {
             const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
             const item = history.find(x => x.id === id);
@@ -774,7 +970,6 @@
             document.getElementById('editModal').classList.add('hidden');
         });
 
-        // Сохранение отредактированного подхода
         document.getElementById('editForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('editId').value;
@@ -796,7 +991,6 @@
             }
         });
 
-        // Удаление подхода
         document.getElementById('deleteApproachBtn').addEventListener('click', () => {
             if (confirm('Удалить эту запись из календаря?')) {
                 const id = document.getElementById('editId').value;
@@ -808,7 +1002,6 @@
             }
         });
 
-        // Очистка истории
         document.getElementById('clearHistoryBtn').addEventListener('click', () => {
             if (confirm('Очистить всю историю подходов из календаря?')) {
                 localStorage.removeItem('fishing_approaches');
@@ -816,7 +1009,7 @@
             }
         });
 
-        // Отправка основной формы
+        // Отправка подходов
         const approachForm = document.getElementById('approachForm');
         const submitBtn = document.getElementById('submitBtn');
 
