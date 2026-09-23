@@ -36,18 +36,37 @@
                 <span class="text-xs font-normal text-amber-400">🎯 Трекер</span>
             </h2>
             <form id="approachForm" class="space-y-3">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Кем была / Имя</label>
-                    <input type="text" id="targetInput" required placeholder="Например: Вика / Брюнетка" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Имя / Кем была</label>
+                        <input type="text" id="targetInput" required placeholder="Напр: Алина" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Telegram (@username)</label>
+                        <input type="text" id="tgInput" placeholder="@username" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Результат подхода</label>
-                    <select id="statusSelect" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
-                        <option value="success">🟢 Успех! Взял ТГ / Номер</option>
-                        <option value="reject">🔴 Отшив / Отказ</option>
-                        <option value="date">🟡 Договорились на свидание</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Результат</label>
+                        <select id="statusSelect" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
+                            <option value="success">🟢 Успех! Взял ТГ</option>
+                            <option value="reject">🔴 Отшив / Отказ</option>
+                            <option value="date">🟡 Свидание</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Оценка (1-10 ⭐)</label>
+                        <select id="ratingSelect" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
+                            <option value="10">10 / 10 🔥</option>
+                            <option value="9">9 / 10 ✨</option>
+                            <option value="8" selected>8 / 10 👍</option>
+                            <option value="7">7 / 10 👌</option>
+                            <option value="6">6 / 10 😐</option>
+                            <option value="5">5 / 10 👎</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>
@@ -56,7 +75,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Детали / Причина / Опенер</label>
+                    <label class="block text-xs text-slate-400 mb-1">Заметка / Опенер / Причина</label>
                     <input type="text" id="noteInput" placeholder="Например: Есть парень / Опенер про кофе" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
 
@@ -75,12 +94,54 @@
         </div>
         
         <div id="historyList" class="space-y-4">
-            <!-- Сюда динамически загрузится история из localStorage -->
+            <!-- Динамическая история -->
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПОДРОБНОГО ПРОСМОТРА -->
+    <div id="viewModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl relative space-y-4">
+            <button id="closeViewModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="flex items-center space-x-4">
+                <div id="viewAvatarContainer" class="w-16 h-16 rounded-full bg-slate-700 border-2 border-amber-400 overflow-hidden flex items-center justify-center text-3xl flex-shrink-0">
+                    👧
+                </div>
+                <div>
+                    <h3 id="viewTarget" class="font-bold text-lg text-white leading-tight">Имя</h3>
+                    <div id="viewStatusBadge" class="mt-1"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-700/40 rounded-xl p-3 border border-slate-700/60 space-y-2 text-xs">
+                <div class="flex justify-between border-b border-slate-700/50 pb-1.5">
+                    <span class="text-slate-400"><i class="fa-brands fa-telegram text-sky-400 mr-1"></i> Telegram:</span>
+                    <span id="viewTg" class="font-semibold text-amber-400">Не указан</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-700/50 pb-1.5">
+                    <span class="text-slate-400"><i class="fa-solid fa-star text-amber-400 mr-1"></i> Оценка:</span>
+                    <span id="viewRating" class="font-semibold text-white">8/10</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-700/50 pb-1.5">
+                    <span class="text-slate-400"><i class="fa-regular fa-clock mr-1"></i> Время и дата:</span>
+                    <span id="viewDateTime" class="text-slate-300">--.--.---- --:--</span>
+                </div>
+                <div class="pt-1">
+                    <span class="text-slate-400 block mb-1"><i class="fa-regular fa-note-sticky mr-1"></i> Заметка:</span>
+                    <p id="viewNote" class="text-slate-200 bg-slate-800/80 p-2 rounded-lg border border-slate-700/50 italic">...</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+                <button id="openEditFromViewBtn" class="w-full bg-slate-700 hover:bg-slate-600 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-pen"></i> Редактировать
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ -->
-    <div id="editModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="editModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-4 shadow-2xl relative space-y-3">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <h3 class="font-bold text-amber-400 text-sm">✏️ Редактирование подхода</h3>
@@ -90,28 +151,47 @@
             <form id="editForm" class="space-y-2.5">
                 <input type="hidden" id="editId">
 
-                <div>
-                    <label class="block text-[11px] text-slate-400 mb-0.5">Кем была / Имя</label>
-                    <input type="text" id="editTarget" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Имя</label>
+                        <input type="text" id="editTarget" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Telegram</label>
+                        <input type="text" id="editTg" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white" placeholder="@username">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] text-slate-400 mb-0.5">Результат</label>
-                    <select id="editStatus" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
-                        <option value="success">🟢 Успех! Взял ТГ / Номер</option>
-                        <option value="reject">🔴 Отшив / Отказ</option>
-                        <option value="date">🟡 Договорились на свидание</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Результат</label>
+                        <select id="editStatus" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                            <option value="success">🟢 Успех! Взял ТГ</option>
+                            <option value="reject">🔴 Отшив / Отказ</option>
+                            <option value="date">🟡 Свидание</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Оценка</label>
+                        <select id="editRating" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                            <option value="10">10 / 10 🔥</option>
+                            <option value="9">9 / 10 ✨</option>
+                            <option value="8">8 / 10 👍</option>
+                            <option value="7">7 / 10 👌</option>
+                            <option value="6">6 / 10 😐</option>
+                            <option value="5">5 / 10 👎</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-0.5">Дата</label>
-                        <input type="text" id="editDate" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500" placeholder="ДД.ММ.ГГГГ">
+                        <input type="text" id="editDate" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white" placeholder="ДД.ММ.ГГГГ">
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-0.5">Время</label>
-                        <input type="text" id="editTime" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500" placeholder="ЧЧ:ММ">
+                        <input type="text" id="editTime" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white" placeholder="ЧЧ:ММ">
                     </div>
                 </div>
 
@@ -132,7 +212,7 @@
         </div>
     </div>
 
-    <!-- Нижняя навигационная панель (Bottom Nav) -->
+    <!-- Навигационная панель -->
     <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex justify-around py-2.5 px-4 z-40">
         <button id="navFormBtn" class="flex flex-col items-center space-y-1 text-amber-400 font-medium text-xs tab-active pb-1">
             <i class="fa-solid fa-bullseye text-lg"></i>
@@ -151,6 +231,7 @@
 
         let userId = null;
         let userName = "Рыбак";
+        let currentActiveItem = null;
 
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             userId = tg.initDataUnsafe.user.id;
@@ -183,7 +264,6 @@
             renderCalendar();
         });
 
-        // Конвертация файла картинки в Base64 для сохранения в памяти
         function convertBase64(file) {
             return new Promise((resolve, reject) => {
                 const fileReader = new FileReader();
@@ -244,14 +324,13 @@
                         statusBadge = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md">🟡 Свидание</span>';
                     }
 
-                    // Аватарка фото или стандартный смайл
                     let avatarHtml = `<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 border border-slate-600">👧</div>`;
                     if (item.photo) {
                         avatarHtml = `<img src="${item.photo}" class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-amber-400/50">`;
                     }
 
                     html += `
-                        <div class="bg-slate-700/40 rounded-xl p-2.5 flex items-center justify-between border border-slate-700/40 gap-3">
+                        <div onclick="openViewModal('${item.id}')" class="bg-slate-700/40 hover:bg-slate-700/70 cursor-pointer active:scale-[0.99] transition rounded-xl p-2.5 flex items-center justify-between border border-slate-700/40 gap-3">
                             <div class="flex items-center gap-3 overflow-hidden">
                                 ${avatarHtml}
                                 <div class="truncate">
@@ -267,9 +346,9 @@
                                 <span class="text-[11px] text-slate-500 font-mono flex items-center gap-1">
                                     <i class="fa-regular fa-clock text-[10px]"></i> ${item.time}
                                 </span>
-                                <button onclick="openEditModal('${item.id}')" class="text-xs text-amber-400 hover:text-amber-300 p-1">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
+                                <span class="text-[11px] text-amber-400/80 font-bold">
+                                    <i class="fa-solid fa-angle-right text-xs"></i>
+                                </span>
                             </div>
                         </div>
                     `;
@@ -284,6 +363,54 @@
             historyList.innerHTML = html;
         }
 
+        // Подробный просмотр
+        window.openViewModal = function(id) {
+            const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
+            const item = history.find(x => x.id === id);
+            if (!item) return;
+
+            currentActiveItem = item;
+
+            document.getElementById('viewTarget').innerText = item.target;
+            document.getElementById('viewDateTime').innerText = `${item.date} в ${item.time}`;
+            document.getElementById('viewNote').innerText = item.note || 'Заметка не оставлена.';
+            document.getElementById('viewRating').innerText = `${item.rating || '8'} / 10 ⭐`;
+
+            // Статус
+            const badgeContainer = document.getElementById('viewStatusBadge');
+            if (item.status === 'success') badgeContainer.innerHTML = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟢 Успех! Взял ТГ</span>';
+            else if (item.status === 'reject') badgeContainer.innerHTML = '<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🔴 Отшив / Отказ</span>';
+            else badgeContainer.innerHTML = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟡 Свидание</span>';
+
+            // ТГ
+            const tgContainer = document.getElementById('viewTg');
+            if (item.telegram) {
+                let cleanTg = item.telegram.replace('@', '').trim();
+                tgContainer.innerHTML = `<a href="https://t.me/${cleanTg}" target="_blank" class="underline hover:text-amber-300">@${cleanTg} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>`;
+            } else {
+                tgContainer.innerText = 'Не указан';
+            }
+
+            // Аватарка
+            const avatarContainer = document.getElementById('viewAvatarContainer');
+            if (item.photo) {
+                avatarContainer.innerHTML = `<img src="${item.photo}" class="w-full h-full object-cover">`;
+            } else {
+                avatarContainer.innerHTML = `👧`;
+            }
+
+            document.getElementById('viewModal').classList.remove('hidden');
+        };
+
+        document.getElementById('closeViewModalBtn').addEventListener('click', () => {
+            document.getElementById('viewModal').classList.add('hidden');
+        });
+
+        document.getElementById('openEditFromViewBtn').addEventListener('click', () => {
+            document.getElementById('viewModal').classList.add('hidden');
+            if (currentActiveItem) openEditModal(currentActiveItem.id);
+        });
+
         // Открытие модалки редактирования
         window.openEditModal = function(id) {
             const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
@@ -292,7 +419,9 @@
 
             document.getElementById('editId').value = item.id;
             document.getElementById('editTarget').value = item.target;
+            document.getElementById('editTg').value = item.telegram || '';
             document.getElementById('editStatus').value = item.status;
+            document.getElementById('editRating').value = item.rating || '8';
             document.getElementById('editDate').value = item.date;
             document.getElementById('editTime').value = item.time;
             document.getElementById('editNote').value = item.note || '';
@@ -300,7 +429,6 @@
             document.getElementById('editModal').classList.remove('hidden');
         };
 
-        // Закрытие модалки
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('editModal').classList.add('hidden');
         });
@@ -314,7 +442,9 @@
             const index = history.findIndex(x => x.id === id);
             if (index !== -1) {
                 history[index].target = document.getElementById('editTarget').value;
+                history[index].telegram = document.getElementById('editTg').value;
                 history[index].status = document.getElementById('editStatus').value;
+                history[index].rating = document.getElementById('editRating').value;
                 history[index].date = document.getElementById('editDate').value;
                 history[index].time = document.getElementById('editTime').value;
                 history[index].note = document.getElementById('editNote').value;
@@ -356,7 +486,9 @@
             submitBtn.innerText = "Сохранение...";
 
             const target = document.getElementById('targetInput').value;
+            const telegram = document.getElementById('tgInput').value;
             const status = document.getElementById('statusSelect').value;
+            const rating = document.getElementById('ratingSelect').value;
             const note = document.getElementById('noteInput').value;
             const photoFile = document.getElementById('photoInput').files[0];
 
@@ -374,24 +506,26 @@
             const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const uniqueId = 'id_' + Date.now();
 
-            // Сохраняем локально
             saveApproachLocally({
                 id: uniqueId,
                 target,
+                telegram,
                 status,
+                rating,
                 note,
                 date: dateStr,
                 time: timeStr,
                 photo: photoBase64
             });
 
-            // Формируем сообщение в Telegram
-            let statusText = "🟢 Взял ТГ/Номер";
+            let statusText = "🟢 Взял ТГ";
             if (status === "reject") statusText = "🔴 Отшив";
             if (status === "date") statusText = "🟡 Свидание";
 
             const textMessage = `🎯 **НОВЫЙ ПОДХОД ЗАФИКСИРОВАН!**\n\n` +
                                 `👤 **Девушка:** ${target}\n` +
+                                `✈️ **Telegram:** ${telegram ? telegram : "Не указан"}\n` +
+                                `⭐ **Оценка:** ${rating}/10\n` +
                                 `📌 **Результат:** ${statusText}\n` +
                                 `📝 **Заметка:** ${note ? note : "Нет"}\n` +
                                 `🕒 **Время:** ${timeStr} (${dateStr})\n\n` +
@@ -399,7 +533,6 @@
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
-            // Отправка сообщения боту в чат
             if (userId) {
                 try {
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -416,14 +549,13 @@
                 }
             }
 
-            // Сброс формы
             document.getElementById('targetInput').value = '';
+            document.getElementById('tgInput').value = '';
             document.getElementById('noteInput').value = '';
             document.getElementById('photoInput').value = '';
             submitBtn.disabled = false;
             submitBtn.innerText = "Записать подход 🎯";
 
-            // Переход во вкладку «Календарь»
             navCalendarBtn.click();
         });
     </script>
