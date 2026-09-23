@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дневник Рыбака</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-4 pb-12">
+    <!-- Шапка -->
+    <div class="flex items-center justify-between mb-6 border-b border-slate-700 pb-3">
+        <h1 class="text-xl font-bold text-amber-400">🎣 Дневник Рыбака</h1>
+        <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400" id="username">Гость</span>
+    </div>
+
+    <!-- Календарь (Виджет) -->
+    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="font-bold text-lg text-slate-200">Календарь Клёва</h2>
+            <span class="text-xs text-emerald-400 bg-emerald-950/60 px-2 py-1 rounded border border-emerald-800">Благоприятный день</span>
+        </div>
+        <div class="grid grid-cols-7 gap-2 text-center text-xs text-slate-400 mb-2">
+            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        </div>
+        <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold">
+            <div class="p-2 rounded bg-slate-700/50 text-slate-500">22</div>
+            <div class="p-2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50">23</div>
+            <div class="p-2 rounded bg-slate-700/30">24</div>
+            <div class="p-2 rounded bg-slate-700/30">25</div>
+            <div class="p-2 rounded bg-slate-700/30">26</div>
+            <div class="p-2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">27</div>
+            <div class="p-2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">28</div>
+        </div>
+    </div>
+
+    <!-- Загрузка улова -->
+    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg">
+        <h2 class="font-bold text-lg mb-3 text-slate-200">Записать улов</h2>
+        <form class="space-y-3" onsubmit="event.preventDefault(); alert('Сохранено!');">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Вид рыбы / Вес</label>
+                <input type="text" placeholder="Например: Щука 2.5 кг" class="w-full bg-slate-700 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Фото улова</label>
+                <div class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center cursor-pointer hover:border-amber-500 transition">
+                    <i class="fa-solid fa-camera text-2xl text-slate-400 mb-1"></i>
+                    <p class="text-xs text-slate-400">Нажми, чтобы прикрепить фото</p>
+                </div>
+            </div>
+            <button class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl shadow-md transition active:scale-95">
+                Сохранить в дневник
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        if (tg.initDataUnsafe?.user) {
+            document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
+        }
+    </script>
+</body>
+</html>
