@@ -14,7 +14,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 pb-20 font-sans selection:bg-amber-500 selection:text-slate-900">
+<body class="bg-slate-900 text-white min-h-screen p-4 pb-24 font-sans selection:bg-amber-500 selection:text-slate-900">
 
     <!-- Шапка -->
     <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
@@ -51,6 +51,11 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs text-slate-400 mb-1">Фото девушки (Опционально)</label>
+                    <input type="file" id="photoInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-amber-400 hover:file:bg-slate-600 cursor-pointer bg-slate-700/30 rounded-xl p-1 border border-slate-600/50">
+                </div>
+
+                <div>
                     <label class="block text-xs text-slate-400 mb-1">Детали / Причина / Опенер</label>
                     <input type="text" id="noteInput" placeholder="Например: Есть парень / Опенер про кофе" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
                 </div>
@@ -74,8 +79,61 @@
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ -->
+    <div id="editModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-4 shadow-2xl relative space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="font-bold text-amber-400 text-sm">✏️ Редактирование подхода</h3>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="editForm" class="space-y-2.5">
+                <input type="hidden" id="editId">
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Кем была / Имя</label>
+                    <input type="text" id="editTarget" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Результат</label>
+                    <select id="editStatus" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                        <option value="success">🟢 Успех! Взял ТГ / Номер</option>
+                        <option value="reject">🔴 Отшив / Отказ</option>
+                        <option value="date">🟡 Договорились на свидание</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Дата</label>
+                        <input type="text" id="editDate" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500" placeholder="ДД.ММ.ГГГГ">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Время</label>
+                        <input type="text" id="editTime" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white placeholder-slate-500" placeholder="ЧЧ:ММ">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Заметка</label>
+                    <input type="text" id="editNote" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
+                </div>
+
+                <div class="pt-2 flex items-center justify-between gap-2">
+                    <button type="button" id="deleteApproachBtn" class="bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold py-2 px-3 rounded-xl text-xs hover:bg-rose-500/30 transition">
+                        🗑 Удалить
+                    </button>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-2 px-4 rounded-xl text-xs transition">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Нижняя навигационная панель (Bottom Nav) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex justify-around py-2.5 px-4 z-50">
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex justify-around py-2.5 px-4 z-40">
         <button id="navFormBtn" class="flex flex-col items-center space-y-1 text-amber-400 font-medium text-xs tab-active pb-1">
             <i class="fa-solid fa-bullseye text-lg"></i>
             <span>Подход</span>
@@ -125,10 +183,19 @@
             renderCalendar();
         });
 
-        // Функция сохранения подхода локально
+        // Конвертация файла картинки в Base64 для сохранения в памяти
+        function convertBase64(file) {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                fileReader.readAsDataURL(file);
+                fileReader.onload = () => { resolve(fileReader.result); };
+                fileReader.onerror = (error) => { reject(error); };
+            });
+        }
+
         function saveApproachLocally(approach) {
             let history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
-            history.unshift(approach); // Добавляем в начало списка
+            history.unshift(approach);
             localStorage.setItem('fishing_approaches', JSON.stringify(history));
         }
 
@@ -148,7 +215,6 @@
                 return;
             }
 
-            // Группировка по датам
             const grouped = {};
             history.forEach(item => {
                 if (!grouped[item.date]) grouped[item.date] = [];
@@ -178,18 +244,33 @@
                         statusBadge = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md">🟡 Свидание</span>';
                     }
 
+                    // Аватарка фото или стандартный смайл
+                    let avatarHtml = `<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 border border-slate-600">👧</div>`;
+                    if (item.photo) {
+                        avatarHtml = `<img src="${item.photo}" class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-amber-400/50">`;
+                    }
+
                     html += `
-                        <div class="bg-slate-700/40 rounded-xl p-2.5 flex items-start justify-between border border-slate-700/40">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="font-bold text-sm text-slate-100">${item.target}</span>
-                                    ${statusBadge}
+                        <div class="bg-slate-700/40 rounded-xl p-2.5 flex items-center justify-between border border-slate-700/40 gap-3">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                ${avatarHtml}
+                                <div class="truncate">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <span class="font-bold text-sm text-slate-100 truncate">${item.target}</span>
+                                        ${statusBadge}
+                                    </div>
+                                    <p class="text-xs text-slate-400 truncate">${item.note ? item.note : 'Без заметки'}</p>
                                 </div>
-                                <p class="text-xs text-slate-400">${item.note ? item.note : 'Без заметки'}</p>
                             </div>
-                            <span class="text-[11px] text-slate-500 font-mono flex items-center gap-1">
-                                <i class="fa-regular fa-clock text-[10px]"></i> ${item.time}
-                            </span>
+
+                            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                                <span class="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                                    <i class="fa-regular fa-clock text-[10px]"></i> ${item.time}
+                                </span>
+                                <button onclick="openEditModal('${item.id}')" class="text-xs text-amber-400 hover:text-amber-300 p-1">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -203,6 +284,59 @@
             historyList.innerHTML = html;
         }
 
+        // Открытие модалки редактирования
+        window.openEditModal = function(id) {
+            const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
+            const item = history.find(x => x.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('editTarget').value = item.target;
+            document.getElementById('editStatus').value = item.status;
+            document.getElementById('editDate').value = item.date;
+            document.getElementById('editTime').value = item.time;
+            document.getElementById('editNote').value = item.note || '';
+
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+
+        // Закрытие модалки
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            document.getElementById('editModal').classList.add('hidden');
+        });
+
+        // Сохранение отредактированного подхода
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            let history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
+            
+            const index = history.findIndex(x => x.id === id);
+            if (index !== -1) {
+                history[index].target = document.getElementById('editTarget').value;
+                history[index].status = document.getElementById('editStatus').value;
+                history[index].date = document.getElementById('editDate').value;
+                history[index].time = document.getElementById('editTime').value;
+                history[index].note = document.getElementById('editNote').value;
+
+                localStorage.setItem('fishing_approaches', JSON.stringify(history));
+                document.getElementById('editModal').classList.add('hidden');
+                renderCalendar();
+            }
+        });
+
+        // Удаление подхода
+        document.getElementById('deleteApproachBtn').addEventListener('click', () => {
+            if (confirm('Удалить эту запись из календаря?')) {
+                const id = document.getElementById('editId').value;
+                let history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
+                history = history.filter(x => x.id !== id);
+                localStorage.setItem('fishing_approaches', JSON.stringify(history));
+                document.getElementById('editModal').classList.add('hidden');
+                renderCalendar();
+            }
+        });
+
         // Очистка истории
         document.getElementById('clearHistoryBtn').addEventListener('click', () => {
             if (confirm('Очистить всю историю подходов из календаря?')) {
@@ -211,7 +345,7 @@
             }
         });
 
-        // Отправка формы
+        // Отправка основной формы
         const approachForm = document.getElementById('approachForm');
         const submitBtn = document.getElementById('submitBtn');
 
@@ -224,21 +358,34 @@
             const target = document.getElementById('targetInput').value;
             const status = document.getElementById('statusSelect').value;
             const note = document.getElementById('noteInput').value;
+            const photoFile = document.getElementById('photoInput').files[0];
+
+            let photoBase64 = null;
+            if (photoFile) {
+                try {
+                    photoBase64 = await convertBase64(photoFile);
+                } catch (e) {
+                    console.error("Ошибка фото:", e);
+                }
+            }
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const uniqueId = 'id_' + Date.now();
 
-            // 1. Сохраняем локально для Календаря
+            // Сохраняем локально
             saveApproachLocally({
+                id: uniqueId,
                 target,
                 status,
                 note,
                 date: dateStr,
-                time: timeStr
+                time: timeStr,
+                photo: photoBase64
             });
 
-            // 2. Формируем сообщение в Telegram
+            // Формируем сообщение в Telegram
             let statusText = "🟢 Взял ТГ/Номер";
             if (status === "reject") statusText = "🔴 Отшив";
             if (status === "date") statusText = "🟡 Свидание";
@@ -248,11 +395,11 @@
                                 `📌 **Результат:** ${statusText}\n` +
                                 `📝 **Заметка:** ${note ? note : "Нет"}\n` +
                                 `🕒 **Время:** ${timeStr} (${dateStr})\n\n` +
-                                `__Запись сохранена из WebApp__`;
+                                `__Запись сохранена в Календарь__`;
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
-            // 3. Отправка сообщения боту в чат
+            // Отправка сообщения боту в чат
             if (userId) {
                 try {
                     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -269,13 +416,14 @@
                 }
             }
 
-            // Очищаем форму и возвращаем кнопку в исходное состояние
+            // Сброс формы
             document.getElementById('targetInput').value = '';
             document.getElementById('noteInput').value = '';
+            document.getElementById('photoInput').value = '';
             submitBtn.disabled = false;
             submitBtn.innerText = "Записать подход 🎯";
 
-            // Переходим во вкладку «Календарь», чтобы показать сохраненную запись
+            // Переход во вкладку «Календарь»
             navCalendarBtn.click();
         });
     </script>
