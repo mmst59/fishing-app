@@ -51,9 +51,10 @@
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Результат</label>
                         <select id="statusSelect" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
-                            <option value="success">🟢 Успех! Взял ТГ</option>
+                            <option value="success">🟢 Дала ТГ</option>
                             <option value="reject">🔴 Отшив / Отказ</option>
-                            <option value="date">🟡 Свидание</option>
+                            <option value="ignore">⚪ Игнор</option>
+                            <option value="date">🟡 Выгулял рыбку 🎣</option>
                         </select>
                     </div>
                     <div>
@@ -76,6 +77,14 @@
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Фото девушки (Опционально)</label>
                     <input type="file" id="photoInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-amber-400 hover:file:bg-slate-600 cursor-pointer bg-slate-700/30 rounded-xl p-1 border border-slate-600/50">
+                    
+                    <!-- Предосмотр загруженной фотографии -->
+                    <div id="photoPreviewContainer" class="mt-2 hidden relative w-24 h-24 rounded-xl overflow-hidden border-2 border-amber-500/50 shadow-md">
+                        <img id="photoPreviewImg" src="" class="w-full h-full object-cover">
+                        <button type="button" id="removePhotoBtn" class="absolute top-1 right-1 bg-slate-900/80 text-rose-400 w-5 h-5 rounded-full flex items-center justify-center text-[10px] hover:bg-slate-900">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
@@ -107,12 +116,6 @@
             <!-- Горизонтальная лента дней текущей недели -->
             <div id="weekDaysContainer" class="grid grid-cols-7 gap-1 text-center">
                 <!-- Заполняется JS -->
-            </div>
-        </div>
-
-            <!-- Горизонтальная лента дней текущей недели -->
-            <div id="weekDaysContainer" class="grid grid-cols-7 gap-1 text-center">
-                <!-- Заполняется автоматически через JavaScript -->
             </div>
         </div>
 
@@ -194,9 +197,10 @@
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-0.5">Результат</label>
                         <select id="editStatus" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-xs text-white">
-                            <option value="success">🟢 Успех! Взял ТГ</option>
+                            <option value="success">🟢 Дала ТГ</option>
                             <option value="reject">🔴 Отшив / Отказ</option>
-                            <option value="date">🟡 Свидание</option>
+                            <option value="ignore">⚪ Игнор</option>
+                            <option value="date">🟡 Выгулял рыбку 🎣</option>
                         </select>
                     </div>
                     <div>
@@ -244,7 +248,7 @@
         </div>
     </div>
 
-<!-- ПОЛНОЭКРАННЫЙ КАЛЕНДАРЬ (МОДАЛЬНОЕ ОКНО) -->
+    <!-- ПОЛНОЭКРАННЫЙ КАЛЕНДАРЬ (МОДАЛЬНОЕ ОКНО) -->
     <div id="fullCalendarModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex flex-col p-4 hidden overflow-y-auto">
         <!-- Шапка окна -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
@@ -370,8 +374,35 @@
             navCalendarBtn.classList.remove('text-slate-400');
             navFormBtn.classList.remove('text-amber-400', 'tab-active');
             navFormBtn.classList.add('text-slate-400');
-            renderWeekDays(); // <-- Добавь эту строчку
+            renderWeekDays();
             renderCalendar();
+        });
+
+        // Обработка Предосмотра Фотографии
+        const photoInput = document.getElementById('photoInput');
+        const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+        const photoPreviewImg = document.getElementById('photoPreviewImg');
+        const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoPreviewImg.src = e.target.result;
+                    photoPreviewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                photoPreviewContainer.classList.add('hidden');
+                photoPreviewImg.src = '';
+            }
+        });
+
+        removePhotoBtn.addEventListener('click', function() {
+            photoInput.value = '';
+            photoPreviewContainer.classList.add('hidden');
+            photoPreviewImg.src = '';
         });
 
         function convertBase64(file) {
@@ -388,7 +419,8 @@
             history.unshift(approach);
             localStorage.setItem('fishing_approaches', JSON.stringify(history));
         }
-// Рендер горизонтального календаря недели
+
+        // Рендер горизонтального календаря недели
         function renderWeekDays() {
             const container = document.getElementById('weekDaysContainer');
             if (!container) return;
@@ -397,7 +429,6 @@
             const currentDayOfWeek = now.getDay(); // 0 - Вс, 1 - Пн ...
             const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
             
-            // Находим понедельник текущей недели
             const monday = new Date(now);
             const diffToMonday = (currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek);
             monday.setDate(now.getDate() + diffToMonday);
@@ -409,10 +440,9 @@
 
                 const dayNum = date.getDate();
                 const dayIndex = date.getDay();
-                const isWeekend = (dayIndex === 0 || dayIndex === 6); // Сб и Вс
+                const isWeekend = (dayIndex === 0 || dayIndex === 6);
                 const isToday = date.toDateString() === now.toDateString();
 
-                // Стили для выходных дней (зеленая рамка/подсветка рыбалки)
                 let cellStyle = 'bg-slate-700/40 border-slate-700 text-slate-300';
                 if (isWeekend) {
                     cellStyle = 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400';
@@ -468,12 +498,11 @@
             const lastDayOfMonth = new Date(year, month + 1, 0);
 
             let startingDay = firstDayOfMonth.getDay();
-            startingDay = (startingDay === 0) ? 6 : startingDay - 1; // Коррекция на Пн
+            startingDay = (startingDay === 0) ? 6 : startingDay - 1;
 
             const grid = document.getElementById('monthDaysGrid');
             grid.innerHTML = '';
 
-            // Пустые ячейки до 1-го числа
             for (let i = 0; i < startingDay; i++) {
                 grid.innerHTML += `<div class="p-2"></div>`;
             }
@@ -532,7 +561,6 @@
             plannedList.push(planItem);
             localStorage.setItem('planned_fishing', JSON.stringify(plannedList));
 
-            // Отправляем уведомление в Telegram
             if (userId) {
                 const notifyText = `📅 **НОВАЯ РЫБАЛКА ЗАПЛАНИРОВАНА!**\n\n` +
                                    `🗓 **Дата:** ${selectedPlanDate}\n` +
@@ -627,11 +655,13 @@
                 `;
 
                 items.forEach(item => {
-                    let statusBadge = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-md">🟢 ТГ/Номер</span>';
+                    let statusBadge = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-md">🟢 Дала ТГ</span>';
                     if (item.status === 'reject') {
                         statusBadge = '<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-md">🔴 Отшив</span>';
+                    } else if (item.status === 'ignore') {
+                        statusBadge = '<span class="bg-slate-500/20 text-slate-300 border border-slate-500/30 text-[10px] px-2 py-0.5 rounded-md">⚪ Игнор</span>';
                     } else if (item.status === 'date') {
-                        statusBadge = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md">🟡 Свидание</span>';
+                        statusBadge = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md">🟡 Выгулял</span>';
                     }
 
                     let avatarHtml = `<div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-lg flex-shrink-0 border border-slate-600">👧</div>`;
@@ -688,9 +718,10 @@
 
             // Статус
             const badgeContainer = document.getElementById('viewStatusBadge');
-            if (item.status === 'success') badgeContainer.innerHTML = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟢 Успех! Взял ТГ</span>';
+            if (item.status === 'success') badgeContainer.innerHTML = '<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟢 Дала ТГ</span>';
             else if (item.status === 'reject') badgeContainer.innerHTML = '<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🔴 Отшив / Отказ</span>';
-            else badgeContainer.innerHTML = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟡 Свидание</span>';
+            else if (item.status === 'ignore') badgeContainer.innerHTML = '<span class="bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">⚪ Игнор</span>';
+            else badgeContainer.innerHTML = '<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-2.5 py-0.5 rounded-md font-semibold">🟡 Выгулял рыбку 🎣</span>';
 
             // ТГ
             const tgContainer = document.getElementById('viewTg');
@@ -828,9 +859,10 @@
                 photo: photoBase64
             });
 
-            let statusText = "🟢 Взял ТГ";
-            if (status === "reject") statusText = "🔴 Отшив";
-            if (status === "date") statusText = "🟡 Свидание";
+            let statusText = "🟢 Дала ТГ";
+            if (status === "reject") statusText = "🔴 Отшив / Отказ";
+            if (status === "ignore") statusText = "⚪ Игнор";
+            if (status === "date") statusText = "🟡 Выгулял рыбку 🎣";
 
             const textMessage = `🎯 **НОВЫЙ ПОДХОД ЗАФИКСИРОВАН!**\n\n` +
                                 `👤 **Девушка:** ${target}\n` +
@@ -863,6 +895,9 @@
             document.getElementById('tgInput').value = '';
             document.getElementById('noteInput').value = '';
             document.getElementById('photoInput').value = '';
+            photoPreviewContainer.classList.add('hidden');
+            photoPreviewImg.src = '';
+            
             submitBtn.disabled = false;
             submitBtn.innerText = "Записать подход 🎯";
 
