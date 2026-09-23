@@ -3,61 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дневник Рыбака</title>
+    <title>Дневник Охоты</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 pb-12">
+<body class="bg-slate-900 text-white min-h-screen p-4 pb-12 font-sans">
+
     <!-- Шапка -->
-    <div class="flex items-center justify-between mb-6 border-b border-slate-700 pb-3">
-        <h1 class="text-xl font-bold text-amber-400">🎣 Дневник Рыбака</h1>
-        <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400" id="username">Гость</span>
+    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+        <div class="flex items-center space-x-2">
+            <span class="text-2xl">🎣</span>
+            <div>
+                <h1 class="text-base font-bold text-amber-400 leading-none">Дневник Рыбалки</h1>
+                <span class="text-[10px] text-slate-400">Street Field Tracker</span>
+            </div>
+        </div>
+        <span class="text-xs bg-slate-800 px-2 py-1 rounded-lg text-slate-300 border border-slate-700" id="username">Рыбак</span>
     </div>
 
-    <!-- Календарь -->
-    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="font-bold text-lg text-slate-200">Календарь Клёва</h2>
-            <span class="text-xs text-emerald-400 bg-emerald-950/60 px-2 py-1 rounded border border-emerald-800">Благоприятный день</span>
+    <!-- Дашборд Статистики -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="bg-slate-800/80 p-3 rounded-2xl border border-slate-700 text-center">
+            <div class="text-[10px] text-slate-400 uppercase font-semibold mb-1">Подходы</div>
+            <div class="text-xl font-black text-white" id="statTotal">0</div>
         </div>
-        <div class="grid grid-cols-7 gap-2 text-center text-xs text-slate-400 mb-2">
-            <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+        <div class="bg-slate-800/80 p-3 rounded-2xl border border-emerald-900/50 text-center">
+            <div class="text-[10px] text-emerald-400 uppercase font-semibold mb-1">Улов (ТГ)</div>
+            <div class="text-xl font-black text-emerald-400" id="statSuccess">0</div>
         </div>
-        <div class="grid grid-cols-7 gap-2 text-center text-sm font-semibold">
-            <div class="p-2 rounded bg-slate-700/50 text-slate-500">22</div>
-            <div class="p-2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50">23</div>
-            <div class="p-2 rounded bg-slate-700/30">24</div>
-            <div class="p-2 rounded bg-slate-700/30">25</div>
-            <div class="p-2 rounded bg-slate-700/30">26</div>
-            <div class="p-2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">27</div>
-            <div class="p-2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">28</div>
+        <div class="bg-slate-800/80 p-3 rounded-2xl border border-rose-900/50 text-center">
+            <div class="text-[10px] text-rose-400 uppercase font-semibold mb-1">Конверсия</div>
+            <div class="text-xl font-black text-amber-400" id="statCR">0%</div>
         </div>
     </div>
 
-    <!-- Форма записи улова -->
-    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg mb-6">
-        <h2 class="font-bold text-lg mb-3 text-slate-200">Записать улов</h2>
-        <form id="catchForm" class="space-y-3">
+    <!-- Форма фиксации подхода -->
+    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg mb-6 border border-slate-700">
+        <h2 class="font-bold text-base mb-3 text-slate-200 flex items-center justify-between">
+            <span>Зафиксировать подход</span>
+            <span class="text-xs font-normal text-slate-400">Новая запись</span>
+        </h2>
+        <form id="approachForm" class="space-y-3">
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Вид рыбы и вес</label>
-                <input type="text" id="fishInput" required placeholder="Например: Щука 2.5 кг" class="w-full bg-slate-700 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                <label class="block text-xs text-slate-400 mb-1">Кем была / Заметка</label>
+                <input type="text" id="targetInput" required placeholder="Например: Аня / Брюнетка в парке" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
             </div>
+
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Наманка / Наживка</label>
-                <input type="text" id="baitInput" placeholder="Например: Воблер 110мм" class="w-full bg-slate-700 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+                <label class="block text-xs text-slate-400 mb-1">Результат подхода</label>
+                <select id="statusSelect" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500 text-white">
+                    <option value="success">🟢 Успех! Взял ТГ / Номер</option>
+                    <option value="reject">🔴 Отшив / Отказ</option>
+                    <option value="date">🟡 Договорились на свидание</option>
+                </select>
             </div>
-            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl shadow-md transition active:scale-95">
-                Сохранить в дневник
+
+            <div id="detailsBlock">
+                <label class="block text-xs text-slate-400 mb-1">Детали / Причина отказа / Опенер</label>
+                <input type="text" id="noteInput" placeholder="Например: «Есть парень» или фраза знакомства" class="w-full bg-slate-700/70 border border-slate-600 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg transition active:scale-95">
+                Записать подход 🎯
             </button>
         </form>
     </div>
 
-    <!-- История уловов -->
-    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg">
-        <h2 class="font-bold text-lg mb-3 text-slate-200">Мои уловы</h2>
-        <div id="catchesList" class="space-y-2">
-            <p class="text-xs text-slate-500 text-center py-2" id="emptyText">Уловов пока нет. Заполни форму выше!</p>
+    <!-- Список подходов -->
+    <div class="bg-slate-800 rounded-2xl p-4 shadow-lg border border-slate-700">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-bold text-base text-slate-200">История вылазок</h2>
+            <button onclick="clearHistory()" class="text-[10px] text-rose-400 hover:underline">Очистить всё</button>
+        </div>
+        <div id="approachesList" class="space-y-2.5">
+            <p class="text-xs text-slate-500 text-center py-4" id="emptyText">Подходов пока нет. Время выходить на «рыбалку»! 🎣</p>
         </div>
     </div>
 
@@ -68,49 +88,91 @@
             document.getElementById('username').innerText = tg.initDataUnsafe.user.first_name;
         }
 
-        const catchForm = document.getElementById('catchForm');
-        const catchesList = document.getElementById('catchesList');
+        const approachForm = document.getElementById('approachForm');
+        const approachesList = document.getElementById('approachesList');
         const emptyText = document.getElementById('emptyText');
 
-        // Загрузка сохраненных записей
-        function loadCatches() {
-            const saved = JSON.parse(localStorage.getItem('my_catches') || '[]');
-            if (saved.length > 0) emptyText.style.display = 'none';
+        function loadData() {
+            const saved = JSON.parse(localStorage.getItem('my_approaches') || '[]');
             
-            catchesList.innerHTML = '';
-            saved.forEach(item => {
+            // Расчет статистики
+            const total = saved.length;
+            const success = saved.filter(i => i.status === 'success' || i.status === 'date').length;
+            const cr = total > 0 ? Math.round((success / total) * 100) : 0;
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statSuccess').innerText = success;
+            document.getElementById('statCR').innerText = cr + '%';
+
+            if (saved.length > 0) {
+                emptyText.style.display = 'none';
+            } else {
+                emptyText.style.display = 'block';
+            }
+            
+            approachesList.innerHTML = '';
+            saved.forEach((item, index) => {
                 const el = document.createElement('div');
-                el.className = 'bg-slate-700/50 p-3 rounded-xl border border-slate-600 flex justify-between items-center';
+                let badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-800';
+                let badgeText = 'Отшив';
+
+                if (item.status === 'success') {
+                    badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-800';
+                    badgeText = 'Дала ТГ 🟢';
+                } else if (item.status === 'date') {
+                    badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-800';
+                    badgeText = 'Свидание 🟡';
+                }
+
+                el.className = 'bg-slate-700/40 p-3 rounded-xl border border-slate-600/60 flex justify-between items-center';
                 el.innerHTML = `
                     <div>
-                        <div class="font-bold text-amber-300 text-sm">${item.fish}</div>
-                        <div class="text-xs text-slate-400">Наживка: ${item.bait || 'Не указана'}</div>
+                        <div class="font-bold text-sm text-slate-100">${item.target}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${item.note || 'Без заметок'}</div>
+                        <div class="text-[10px] text-slate-500 mt-1">${item.date}</div>
                     </div>
-                    <div class="text-xs text-slate-500">${item.date}</div>
+                    <div class="text-right flex flex-col items-end">
+                        <span class="text-[11px] px-2 py-0.5 rounded-md border font-medium ${badgeClass}">${badgeText}</span>
+                        <button onclick="deleteItem(${index})" class="text-[10px] text-slate-500 hover:text-rose-400 mt-2">Удалить</button>
+                    </div>
                 `;
-                catchesList.appendChild(el);
+                approachesList.appendChild(el);
             });
         }
 
-        // Обработка отправки формы
-        catchForm.addEventListener('submit', (e) => {
+        approachForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const fish = document.getElementById('fishInput').value;
-            const bait = document.getElementById('baitInput').value;
-            const date = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+            const target = document.getElementById('targetInput').value;
+            const status = document.getElementById('statusSelect').value;
+            const note = document.getElementById('noteInput').value;
+            const date = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-            const saved = JSON.parse(localStorage.getItem('my_catches') || '[]');
-            saved.unshift({ fish, bait, date });
-            localStorage.setItem('my_catches', JSON.stringify(saved));
+            const saved = JSON.parse(localStorage.getItem('my_approaches') || '[]');
+            saved.unshift({ target, status, note, date });
+            localStorage.setItem('my_approaches', JSON.stringify(saved));
 
-            document.getElementById('fishInput').value = '';
-            document.getElementById('baitInput').value = '';
+            document.getElementById('targetInput').value = '';
+            document.getElementById('noteInput').value = '';
 
-            loadCatches();
-            tg.HapticFeedback?.notificationOccurred('success'); // Легкая вибрация телефона при успехе
+            loadData();
+            tg.HapticFeedback?.notificationOccurred('success');
         });
 
-        loadCatches();
+        function deleteItem(index) {
+            const saved = JSON.parse(localStorage.getItem('my_approaches') || '[]');
+            saved.splice(index, 1);
+            localStorage.setItem('my_approaches', JSON.stringify(saved));
+            loadData();
+        }
+
+        function clearHistory() {
+            if (confirm('Сбросить всю статистику подходов?')) {
+                localStorage.removeItem('my_approaches');
+                loadData();
+            }
+        }
+
+        loadData();
     </script>
 </body>
 </html>
