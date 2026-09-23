@@ -14,7 +14,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-4 pb-24 font-sans selection:bg-amber-500 selection:text-slate-900">
+<body class="bg-slate-900 text-white min-h-screen p-4 pb-28 font-sans selection:bg-amber-500 selection:text-slate-900">
 
     <!-- Шапка -->
     <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
@@ -25,7 +25,7 @@
                 <span class="text-[10px] text-slate-400">Street Field Tracker</span>
             </div>
         </div>
-        <!-- Кликабельная кнопка профиля -->
+        <!-- Кнопка профиля -->
         <button id="openProfileBtn" class="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 active:scale-95 transition px-2.5 py-1.5 rounded-xl text-slate-200 border border-slate-700 shadow-sm cursor-pointer">
             <i class="fa-solid fa-user-circle text-amber-400 text-sm"></i>
             <span id="username">Рыбак</span>
@@ -102,7 +102,33 @@
         </div>
     </div>
 
-    <!-- ВКЛАДКА 2: Календарь и История -->
+    <!-- ВКЛАДКА 2: Совместные события (С друзьями) -->
+    <div id="tabEvents" class="tab-content hidden space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="font-bold text-sm text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-users text-amber-400"></i> Совместные вылазки
+            </h2>
+            <button id="openCreateEventBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition active:scale-95 flex items-center gap-1 shadow-md">
+                <i class="fa-solid fa-plus"></i> Создать замес
+            </button>
+        </div>
+
+        <!-- Карточка статуса поиска компании -->
+        <div class="bg-gradient-to-r from-amber-500/10 to-slate-800 border border-amber-500/30 rounded-2xl p-3.5 shadow-md flex items-center justify-between">
+            <div class="space-y-0.5">
+                <div class="font-bold text-xs text-amber-400">Замути командный фарм!</div>
+                <p class="text-[11px] text-slate-400">Создай событие, отправь ссылку другу и идите делать подход вместе.</p>
+            </div>
+            <span class="text-3xl">🤝</span>
+        </div>
+
+        <!-- Список Совместных Вылазок -->
+        <div id="eventsList" class="space-y-3">
+            <!-- Заполняется JS -->
+        </div>
+    </div>
+
+    <!-- ВКЛАДКА 3: Календарь и История -->
     <div id="tabCalendar" class="tab-content hidden space-y-4">
         
         <div onclick="openFullCalendar()" class="bg-slate-800/80 border border-slate-700/80 hover:border-amber-500/50 cursor-pointer active:scale-[0.99] transition rounded-2xl p-3.5 shadow-md">
@@ -130,6 +156,73 @@
         </div>
     </div>
 
+    <!-- МОДАЛКА: Создать Совместное Событие -->
+    <div id="createEventModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-4 shadow-2xl relative space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="font-bold text-amber-400 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-plus"></i> Совместная рыбалка
+                </h3>
+                <button id="closeCreateEventBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="createEventForm" class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Название / Локация</label>
+                    <input type="text" id="eventTitleInput" required placeholder="Напр: ТЦ Галерея / Центр" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2.5 text-xs text-white outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Дата</label>
+                        <input type="date" id="eventDateInput" required class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Время сбора</label>
+                        <input type="time" id="eventTimeInput" required value="17:00" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2 text-xs text-white outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Цель выхода (Опционально)</label>
+                    <input type="text" id="eventGoalInput" placeholder="Напр: Делаем по 10 подходов минимум" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2.5 text-xs text-white outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs shadow-lg transition active:scale-95 flex items-center justify-center space-x-1.5">
+                    <span>Сформировать и получить ссылку 🔗</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: Приглашение от друга (Deep Link) -->
+    <div id="inviteReceivedModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border-2 border-amber-500/60 rounded-2xl w-full max-w-sm p-5 shadow-2xl relative space-y-4 text-center">
+            <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-2xl mx-auto border border-amber-500/40">
+                📩
+            </div>
+            
+            <div>
+                <span class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-bold uppercase">Приглашение на рыбалку</span>
+                <h3 id="inviterName" class="font-extrabold text-base text-white mt-2">Рыбак зовет тебя!</h3>
+                <p id="inviteEventDetails" class="text-xs text-slate-300 mt-1">Локация: ТЦ Галерея • 25.09 в 17:00</p>
+            </div>
+
+            <div class="bg-slate-700/50 rounded-xl p-3 text-xs text-slate-300 border border-slate-600 italic" id="inviteGoalText">
+                "Идем выбивать контакты!"
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button id="rejectInviteBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">
+                    Не смогу ❌
+                </button>
+                <button id="acceptInviteBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 rounded-xl text-xs shadow-lg transition active:scale-95">
+                    Я в деле 🔥
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ И СТАТИСТИКИ -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-50 flex flex-col p-4 hidden overflow-y-auto">
         <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
@@ -142,7 +235,6 @@
             </button>
         </div>
 
-        <!-- Шапка Профиля -->
         <div class="bg-gradient-to-r from-slate-800 to-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-lg mb-4 flex items-center space-x-4">
             <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-2xl text-amber-400 font-bold shadow-md">
                 <i class="fa-solid fa-user-ninja"></i>
@@ -156,7 +248,6 @@
             </div>
         </div>
 
-        <!-- Виджет Текущей / Последней Рыбалки -->
         <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 shadow-md mb-4 relative overflow-hidden">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
@@ -171,7 +262,6 @@
             </div>
         </div>
 
-        <!-- Сборная Статистика -->
         <h4 class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-chart-pie text-amber-400"></i> Сводка эффективности
         </h4>
@@ -181,27 +271,22 @@
                 <span class="text-[11px] text-slate-400">Всего подходов</span>
                 <span id="statTotal" class="text-2xl font-black text-white mt-1">0</span>
             </div>
-
             <div class="bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-2xl flex flex-col justify-between">
                 <span class="text-[11px] text-emerald-400">🟢 Взято ТГ</span>
                 <span id="statSuccess" class="text-2xl font-black text-emerald-400 mt-1">0</span>
             </div>
-
             <div class="bg-rose-950/20 border border-rose-500/30 p-3 rounded-2xl flex flex-col justify-between">
                 <span class="text-[11px] text-rose-400">🔴 Отшивы</span>
                 <span id="statReject" class="text-2xl font-black text-rose-400 mt-1">0</span>
             </div>
-
             <div class="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl flex flex-col justify-between">
                 <span class="text-[11px] text-slate-300">⚪ Игнор</span>
                 <span id="statIgnore" class="text-2xl font-black text-slate-300 mt-1">0</span>
             </div>
-
             <div class="bg-amber-950/20 border border-amber-500/30 p-3 rounded-2xl flex flex-col justify-between">
-                <span class="text-[11px] text-amber-400">🟡 Свидания (Выгулял)</span>
+                <span class="text-[11px] text-amber-400">🟡 Свидания</span>
                 <span id="statDate" class="text-2xl font-black text-amber-400 mt-1">0</span>
             </div>
-
             <div class="bg-slate-800 border border-slate-700/80 p-3 rounded-2xl flex flex-col justify-between">
                 <span class="text-[11px] text-slate-400">⭐ Средняя оценка</span>
                 <span id="statAvgRating" class="text-2xl font-black text-amber-400 mt-1">0.0</span>
@@ -365,43 +450,16 @@
         </div>
     </div>
 
-    <!-- МОДАЛКА НАЗНАЧЕНИЯ РЫБАЛКИ -->
-    <div id="planFishingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-4 shadow-2xl relative space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-                <h3 class="font-bold text-amber-400 text-sm">🎯 Запланировать Рыбалку</h3>
-                <button id="closePlanModalBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <form id="planFishingForm" class="space-y-3">
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Выбранная дата</label>
-                    <input type="text" id="planDateInput" readonly class="w-full bg-slate-700/50 border border-slate-600 rounded-xl p-2.5 text-xs text-amber-400 font-bold outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Время выхода</label>
-                    <input type="time" id="planTimeInput" required value="17:00" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2.5 text-xs text-white outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Локация / План на день</label>
-                    <input type="text" id="planLocationInput" placeholder="Напр: ТЦ Галерея / Центр города" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-2.5 text-xs text-white outline-none">
-                </div>
-
-                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs shadow-lg transition active:scale-95 flex items-center justify-center space-x-1.5">
-                    <span>Запланировать и отправить напоминание 🔔</span>
-                </button>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Навигационная панель -->
+    <!-- Навигационная панель (3 ВКЛАДКИ) -->
     <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex flex-col items-center py-2 px-4 z-40">
         <div class="flex justify-around w-full pb-1">
             <button id="navFormBtn" class="flex flex-col items-center space-y-1 text-amber-400 font-medium text-xs tab-active">
                 <i class="fa-solid fa-bullseye text-lg"></i>
                 <span>Подход</span>
+            </button>
+            <button id="navEventsBtn" class="flex flex-col items-center space-y-1 text-slate-400 font-medium text-xs">
+                <i class="fa-solid fa-users text-lg"></i>
+                <span>События</span>
             </button>
             <button id="navCalendarBtn" class="flex flex-col items-center space-y-1 text-slate-400 font-medium text-xs">
                 <i class="fa-solid fa-calendar-days text-lg"></i>
@@ -409,11 +467,12 @@
             </button>
         </div>
         <div class="text-[10px] text-slate-500 font-mono pt-0.5">
-            @fishingvlgbot • <span class="text-amber-500/80 font-bold">v0.3</span>
+            @fishingvlgbot • <span class="text-amber-500/80 font-bold">v0.4</span>
         </div>
     </div>
 
     <script>
+        const BOT_USERNAME = "fishingvlgbot";
         const BOT_TOKEN = "8828579591:AAH9F43eq0POe4Gz-yHLjGG6K0HnssIUYus";
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -430,33 +489,178 @@
             document.getElementById('profileName').innerText = userName;
         }
 
-        // Вкладки
+        // Вкладки Навигации
         const navFormBtn = document.getElementById('navFormBtn');
+        const navEventsBtn = document.getElementById('navEventsBtn');
         const navCalendarBtn = document.getElementById('navCalendarBtn');
+
         const tabForm = document.getElementById('tabForm');
+        const tabEvents = document.getElementById('tabEvents');
         const tabCalendar = document.getElementById('tabCalendar');
 
+        function resetTabs() {
+            [tabForm, tabEvents, tabCalendar].forEach(t => t.classList.add('hidden'));
+            [navFormBtn, navEventsBtn, navCalendarBtn].forEach(b => {
+                b.classList.remove('text-amber-400', 'tab-active');
+                b.classList.add('text-slate-400');
+            });
+        }
+
         navFormBtn.addEventListener('click', () => {
+            resetTabs();
             tabForm.classList.remove('hidden');
-            tabCalendar.classList.add('hidden');
             navFormBtn.classList.add('text-amber-400', 'tab-active');
             navFormBtn.classList.remove('text-slate-400');
-            navCalendarBtn.classList.remove('text-amber-400', 'tab-active');
-            navCalendarBtn.classList.add('text-slate-400');
+        });
+
+        navEventsBtn.addEventListener('click', () => {
+            resetTabs();
+            tabEvents.classList.remove('hidden');
+            navEventsBtn.classList.add('text-amber-400', 'tab-active');
+            navEventsBtn.classList.remove('text-slate-400');
+            renderEventsList();
         });
 
         navCalendarBtn.addEventListener('click', () => {
+            resetTabs();
             tabCalendar.classList.remove('hidden');
-            tabForm.classList.add('hidden');
             navCalendarBtn.classList.add('text-amber-400', 'tab-active');
             navCalendarBtn.classList.remove('text-slate-400');
-            navFormBtn.classList.remove('text-amber-400', 'tab-active');
-            navFormBtn.classList.add('text-slate-400');
             renderWeekDays();
             renderCalendar();
         });
 
-        // Открытие / Закрытие Профиля
+        // Работа с событиями (Совместные выезды)
+        document.getElementById('openCreateEventBtn').addEventListener('click', () => {
+            document.getElementById('createEventModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeCreateEventBtn').addEventListener('click', () => {
+            document.getElementById('createEventModal').classList.add('hidden');
+        });
+
+        document.getElementById('createEventForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('eventTitleInput').value;
+            const rawDate = document.getElementById('eventDateInput').value;
+            const time = document.getElementById('eventTimeInput').value;
+            const goal = document.getElementById('eventGoalInput').value || 'Выбить максимум ТГ!';
+
+            // Конвертация даты
+            const parts = rawDate.split('-');
+            const formattedDate = `${parts[2]}.${parts[1]}.${parts[2]}`;
+
+            const eventItem = {
+                id: 'evt_' + Date.now(),
+                creator: userName,
+                title: title,
+                date: formattedDate,
+                time: time,
+                goal: goal,
+                participants: [userName]
+            };
+
+            let events = JSON.parse(localStorage.getItem('joint_events') || '[]');
+            events.unshift(eventItem);
+            localStorage.setItem('joint_events', JSON.stringify(events));
+
+            document.getElementById('createEventModal').classList.add('hidden');
+            renderEventsList();
+        });
+
+        function renderEventsList() {
+            const container = document.getElementById('eventsList');
+            const events = JSON.parse(localStorage.getItem('joint_events') || '[]');
+
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-500">
+                        <i class="fa-solid fa-users-slash text-3xl mb-2"></i>
+                        <p class="text-xs">У вас пока нет запланированных совместных выходов.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            events.forEach(item => {
+                const shareText = encodeURIComponent(
+                    `🎣 *${item.creator}* приглашает тебя на совместную рыбалку!\n\n` +
+                    `📍 **Локация:** ${item.title}\n` +
+                    `📅 **Дата:** ${item.date} в ${item.time}\n` +
+                    `🔥 **Цель:** ${item.goal}\n\n` +
+                    `Подтверждай участие в боте!`
+                );
+                const shareUrl = `https://t.me/share/url?url=https://t.me/${BOT_USERNAME}?start=${item.id}&text=${shareText}`;
+
+                html += `
+                    <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5 space-y-2.5 shadow-lg">
+                        <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+                            <div>
+                                <h3 class="font-bold text-sm text-amber-400">${item.title}</h3>
+                                <span class="text-[10px] text-slate-400">Организатор: <b class="text-slate-200">${item.creator}</b></span>
+                            </div>
+                            <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-lg">
+                                ${item.date} ${item.time}
+                            </span>
+                        </div>
+
+                        <div class="text-xs text-slate-300 bg-slate-700/40 p-2 rounded-xl border border-slate-700/50 italic">
+                            🎯 ${item.goal}
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-[10px] text-slate-400">Участники (${item.participants.length}):</span>
+                                <div class="flex -space-x-1">
+                                    ${item.participants.map(p => `<span class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-400 text-[9px] text-amber-300 flex items-center justify-center font-bold">${p[0]}</span>`).join('')}
+                                </div>
+                            </div>
+
+                            <a href="${shareUrl}" target="_blank" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-xl text-[11px] font-bold transition flex items-center gap-1 active:scale-95">
+                                <i class="fa-solid fa-share-nodes"></i> Зов друга
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Проверка DeepLink параметра (Приглашение)
+        function checkDeepLink() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                const param = tg.initDataUnsafe.start_param;
+                if (param.startsWith('evt_')) {
+                    const events = JSON.parse(localStorage.getItem('joint_events') || '[]');
+                    const event = events.find(x => x.id === param);
+
+                    if (event) {
+                        document.getElementById('inviterName').innerText = `${event.creator} зовет тебя на рыбалку!`;
+                        document.getElementById('inviteEventDetails').innerText = `Локация: ${event.title} • ${event.date} в ${event.time}`;
+                        document.getElementById('inviteGoalText').innerText = `"${event.goal}"`;
+                        document.getElementById('inviteReceivedModal').classList.remove('hidden');
+
+                        document.getElementById('acceptInviteBtn').onclick = function() {
+                            if (!event.participants.includes(userName)) {
+                                event.participants.push(userName);
+                                localStorage.setItem('joint_events', JSON.stringify(events));
+                            }
+                            document.getElementById('inviteReceivedModal').classList.add('hidden');
+                            navEventsBtn.click();
+                        };
+
+                        document.getElementById('rejectInviteBtn').onclick = function() {
+                            document.getElementById('inviteReceivedModal').classList.add('hidden');
+                        };
+                    }
+                }
+            }
+        }
+
+        // Профиль
         document.getElementById('openProfileBtn').addEventListener('click', () => {
             renderProfileStats();
             document.getElementById('profileModal').classList.remove('hidden');
@@ -467,7 +671,6 @@
             if (timerInterval) clearInterval(timerInterval);
         });
 
-        // Расчет Статистики Профиля
         function renderProfileStats() {
             const history = JSON.parse(localStorage.getItem('fishing_approaches') || '[]');
             
@@ -480,7 +683,6 @@
             let totalRating = 0;
             history.forEach(x => { totalRating += parseFloat(x.rating || 8); });
             const avgRating = total > 0 ? (totalRating / total).toFixed(1) : '0.0';
-
             const conversion = total > 0 ? Math.round((success / total) * 100) : 0;
 
             document.getElementById('statTotal').innerText = total;
@@ -494,7 +696,6 @@
             updateFishingStatus();
         }
 
-        // Обновление Таймера и Статуса Рыбалки
         function updateFishingStatus() {
             const plannedList = JSON.parse(localStorage.getItem('planned_fishing') || '[]');
             const badge = document.getElementById('fishingBadge');
@@ -511,7 +712,6 @@
                 return;
             }
 
-            // Находим ближайшую рыбалку
             const now = new Date();
             let closestPlan = null;
             let closestDiff = Infinity;
@@ -521,7 +721,6 @@
                 if(parts.length === 3) {
                     const planDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${p.time}:00`);
                     const diff = planDate - now;
-                    // Ищем активную сейчас или ближайшую будущую
                     if (diff > -6 * 3600 * 1000 && diff < closestDiff) {
                         closestDiff = diff;
                         closestPlan = { ...p, fullDate: planDate };
@@ -538,13 +737,12 @@
             }
 
             const startMs = closestPlan.fullDate.getTime();
-            const endMs = startMs + (6 * 3600 * 1000); // Сессия длится 6 часов
+            const endMs = startMs + (6 * 3600 * 1000);
 
             function tick() {
                 const currentTime = new Date().getTime();
 
                 if (currentTime >= startMs && currentTime <= endMs) {
-                    // РЫБАЛКА ИДЕТ ПРЯМО СЕЙЧАС (6 часовой таймер)
                     badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse";
                     badge.innerText = "🎣 В ПРОЦЕССЕ (ИДЕТ)";
                     mainText.innerText = `Локация: ${closestPlan.location}. Осталось времени:`;
@@ -557,7 +755,6 @@
                     const diffHours = (startMs - currentTime) / (1000 * 3600);
                     
                     if (diffHours <= 6) {
-                        // ДО НАЧАЛА МЕНЕЕ 6 ЧАСОВ
                         badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
                         badge.innerText = "⏳ СКОРО НАЧАЛО";
                         mainText.innerText = `Выход в ${closestPlan.time} (${closestPlan.location}). Старт через:`;
@@ -566,7 +763,6 @@
                         countdown.innerText = formatTimeLeft(left);
                         countdown.classList.remove('hidden');
                     } else {
-                        // БУДУЩАЯ РЫБАЛКА (Более 6 часов)
                         badge.className = "text-[10px] px-2 py-0.5 rounded-full font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30";
                         badge.innerText = "📅 ЗАПЛАНИРОВАНО";
                         mainText.innerText = `Ближайшая: ${closestPlan.date} в ${closestPlan.time} (${closestPlan.location})`;
@@ -593,7 +789,7 @@
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // Предосмотр фото
+        // Предосмотр Фото
         const photoInput = document.getElementById('photoInput');
         const photoPreviewContainer = document.getElementById('photoPreviewContainer');
         const photoPreviewImg = document.getElementById('photoPreviewImg');
@@ -730,62 +926,13 @@
                 if (isToday) bgStyle = 'bg-amber-500/20 text-amber-400 border-amber-500 font-bold';
 
                 grid.innerHTML += `
-                    <button onclick="openPlanModal('${dateStr}')" class="p-2 rounded-xl border ${bgStyle} flex flex-col items-center justify-between min-h-[44px] hover:border-amber-400 transition relative">
+                    <div class="p-2 rounded-xl border ${bgStyle} flex flex-col items-center justify-between min-h-[44px] relative">
                         <span>${day}</span>
                         ${hasPlan ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>' : ''}
-                    </button>
+                    </div>
                 `;
             }
         }
-
-        window.openPlanModal = function(dateStr) {
-            selectedPlanDate = dateStr;
-            document.getElementById('planDateInput').value = dateStr;
-            document.getElementById('planFishingModal').classList.remove('hidden');
-        };
-
-        document.getElementById('closePlanModalBtn').addEventListener('click', () => {
-            document.getElementById('planFishingModal').classList.add('hidden');
-        });
-
-        document.getElementById('planFishingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const time = document.getElementById('planTimeInput').value;
-            const location = document.getElementById('planLocationInput').value || 'Не указана';
-
-            const planItem = {
-                id: 'plan_' + Date.now(),
-                date: selectedPlanDate,
-                time: time,
-                location: location
-            };
-
-            let plannedList = JSON.parse(localStorage.getItem('planned_fishing') || '[]');
-            plannedList.push(planItem);
-            localStorage.setItem('planned_fishing', JSON.stringify(plannedList));
-
-            if (userId) {
-                const notifyText = `📅 **НОВАЯ РЫБАЛКА ЗАПЛАНИРОВАНА!**\n\n` +
-                                   `🗓 **Дата:** ${selectedPlanDate}\n` +
-                                   `⏰ **Время:** ${time}\n` +
-                                   `📍 **Локация:** ${location}\n\n` +
-                                   `🔔 *Напоминание зафиксировано в системе.*`;
-
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: userId, text: notifyText, parse_mode: 'Markdown' })
-                    });
-                } catch (err) {
-                    console.error("Ошибка отправки уведомления:", err);
-                }
-            }
-
-            document.getElementById('planFishingModal').classList.add('hidden');
-            renderFullMonthCalendar();
-            renderPlannedFishingList();
-        });
 
         function renderPlannedFishingList() {
             const container = document.getElementById('plannedFishingList');
@@ -1096,6 +1243,9 @@
 
             navCalendarBtn.click();
         });
+
+        // Инициализация
+        checkDeepLink();
     </script>
 </body>
 </html>
