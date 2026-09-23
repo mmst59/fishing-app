@@ -91,9 +91,27 @@
     </div>
 
     <!-- ВКЛАДКА 2: Календарь и История -->
-    <div id="tabCalendar" class="tab-content hidden">
-        <div class="flex items-center justify-between mb-3">
-            <h2 class="font-bold text-base text-slate-200">📅 Календарь Подходов</h2>
+    <div id="tabCalendar" class="tab-content hidden space-y-4">
+        
+        <!-- Виджет «Календарь Клёва» -->
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3.5 shadow-md">
+            <div class="flex items-center justify-between mb-2.5">
+                <span class="font-bold text-xs text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-week text-amber-400"></i> Календарь Клёва
+                </span>
+                <span id="biteStatusBadge" class="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                    Благоприятный день
+                </span>
+            </div>
+
+            <!-- Горизонтальная лента дней текущей недели -->
+            <div id="weekDaysContainer" class="grid grid-cols-7 gap-1 text-center">
+                <!-- Заполняется автоматически через JavaScript -->
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <h2 class="font-bold text-sm text-slate-300">📋 История подходов</h2>
             <button id="clearHistoryBtn" class="text-xs text-slate-500 hover:text-red-400 transition">Очистить историю</button>
         </div>
         
@@ -221,15 +239,20 @@
     </div>
 
     <!-- Навигационная панель -->
-    <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex justify-around py-2.5 px-4 z-40">
-        <button id="navFormBtn" class="flex flex-col items-center space-y-1 text-amber-400 font-medium text-xs tab-active pb-1">
-            <i class="fa-solid fa-bullseye text-lg"></i>
-            <span>Подход</span>
-        </button>
-        <button id="navCalendarBtn" class="flex flex-col items-center space-y-1 text-slate-400 font-medium text-xs pb-1">
-            <i class="fa-solid fa-calendar-days text-lg"></i>
-            <span>Календарь</span>
-        </button>
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-md border-t border-slate-700 flex flex-col items-center py-2 px-4 z-40">
+        <div class="flex justify-around w-full pb-1">
+            <button id="navFormBtn" class="flex flex-col items-center space-y-1 text-amber-400 font-medium text-xs tab-active">
+                <i class="fa-solid fa-bullseye text-lg"></i>
+                <span>Подход</span>
+            </button>
+            <button id="navCalendarBtn" class="flex flex-col items-center space-y-1 text-slate-400 font-medium text-xs">
+                <i class="fa-solid fa-calendar-days text-lg"></i>
+                <span>Календарь</span>
+            </button>
+        </div>
+        <div class="text-[10px] text-slate-500 font-mono pt-0.5">
+            @fishingvlgbot • <span class="text-amber-500/80 font-bold">v0.1</span>
+        </div>
     </div>
 
     <script>
@@ -269,6 +292,7 @@
             navCalendarBtn.classList.remove('text-slate-400');
             navFormBtn.classList.remove('text-amber-400', 'tab-active');
             navFormBtn.classList.add('text-slate-400');
+            renderWeekDays(); // <-- Добавь эту строчку
             renderCalendar();
         });
 
@@ -286,7 +310,50 @@
             history.unshift(approach);
             localStorage.setItem('fishing_approaches', JSON.stringify(history));
         }
+// Рендер горизонтального календаря недели
+        function renderWeekDays() {
+            const container = document.getElementById('weekDaysContainer');
+            if (!container) return;
 
+            const now = new Date();
+            const currentDayOfWeek = now.getDay(); // 0 - Вс, 1 - Пн ...
+            const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            
+            // Находим понедельник текущей недели
+            const monday = new Date(now);
+            const diffToMonday = (currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek);
+            monday.setDate(now.getDate() + diffToMonday);
+
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + i);
+
+                const dayNum = date.getDate();
+                const dayIndex = date.getDay();
+                const isWeekend = (dayIndex === 0 || dayIndex === 6); // Сб и Вс
+                const isToday = date.toDateString() === now.toDateString();
+
+                // Стили для выходных дней (зеленая рамка/подсветка рыбалки)
+                let cellStyle = 'bg-slate-700/40 border-slate-700 text-slate-300';
+                if (isWeekend) {
+                    cellStyle = 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400';
+                }
+                if (isToday) {
+                    cellStyle = 'bg-amber-500/20 border-amber-500 text-amber-400 font-bold';
+                }
+
+                html += `
+                    <div class="flex flex-col items-center p-1.5 rounded-xl border ${cellStyle}">
+                        <span class="text-[10px] opacity-70 mb-0.5">${dayNames[dayIndex]}</span>
+                        <span class="text-xs font-bold">${dayNum}</span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+        
         // Рендер Календаря
         function renderCalendar() {
             const historyList = document.getElementById('historyList');
