@@ -473,7 +473,7 @@
 
     <script>
         const BOT_USERNAME = "fishingvlgbot";
-        const BOT_TOKEN = "8828579591:AAH9F43eq0POe4Gz-yHLjGG6K0HnssIUYus";
+        // Токен бота в Mini App не нужен: данные отправляются через Telegram.WebApp.sendData().
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -549,11 +549,12 @@
 
             // Конвертация даты
             const parts = rawDate.split('-');
-            const formattedDate = `${parts[2]}.${parts[1]}.${parts[2]}`;
+            const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
 
             const eventItem = {
                 id: 'evt_' + Date.now(),
                 creator: userName,
+                creatorId: userId,
                 title: title,
                 date: formattedDate,
                 time: time,
@@ -592,7 +593,12 @@
                     `🔥 **Цель:** ${item.goal}\n\n` +
                     `Подтверждай участие в боте!`
                 );
-                const shareUrl = `https://t.me/share/url?url=https://t.me/${BOT_USERNAME}?start=${item.id}&text=${shareText}`;
+                // Direct Mini App link: Telegram opens the приложение, а start_param
+                // передаётся прямо в WebApp. В отличие от ?start=, пользователя
+                // не перебрасывает на обычный экран бота.
+                const invitePayload = encodeInvitePayload(item);
+                const miniAppUrl = `https://t.me/${BOT_USERNAME}?startapp=${encodeURIComponent(invitePayload)}`;
+                const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(miniAppUrl)}&text=${shareText}`;
 
                 html += `
                     <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5 space-y-2.5 shadow-lg">
@@ -629,35 +635,77 @@
             container.innerHTML = html;
         }
 
-        // Проверка DeepLink параметра (Приглашение)
-        function checkDeepLink() {
-            if (tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-                const param = tg.initDataUnsafe.start_param;
-                if (param.startsWith('evt_')) {
-                    const events = JSON.parse(localStorage.getItem('joint_events') || '[]');
-                    const event = events.find(x => x.id === param);
+        // Кодируем событие в startapp, чтобы приглашённому пользователю
+        // не требовался localStorage организатора.
+        function encodeInvitePayload(event) {
+            const payload = {
+                id: event.id,
+                creator: event.creator,
+                creatorId: event.creatorId || null,
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                goal: event.goal
+            };
 
-                    if (event) {
-                        document.getElementById('inviterName').innerText = `${event.creator} зовет тебя на рыбалку!`;
-                        document.getElementById('inviteEventDetails').innerText = `Локация: ${event.title} • ${event.date} в ${event.time}`;
-                        document.getElementById('inviteGoalText').innerText = `"${event.goal}"`;
-                        document.getElementById('inviteReceivedModal').classList.remove('hidden');
+            const bytes = new TextEncoder().encode(JSON.stringify(payload));
+            let binary = '';
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            return btoa(binary)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/g, '');
+        }
 
-                        document.getElementById('acceptInviteBtn').onclick = function() {
-                            if (!event.participants.includes(userName)) {
-                                event.participants.push(userName);
-                                localStorage.setItem('joint_events', JSON.stringify(events));
-                            }
-                            document.getElementById('inviteReceivedModal').classList.add('hidden');
-                            navEventsBtn.click();
-                        };
-
-                        document.getElementById('rejectInviteBtn').onclick = function() {
-                            document.getElementById('inviteReceivedModal').classList.add('hidden');
-                        };
-                    }
-                }
+        function decodeInvitePayload(value) {
+            try {
+                const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+                const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+                const binary = atob(padded);
+                const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+                return JSON.parse(new TextDecoder().decode(bytes));
+            } catch (e) {
+                console.error('Не удалось прочитать приглашение:', e);
+                return null;
             }
+        }
+
+        // Проверка приглашения из Direct Mini App link (?startapp=...)
+        function checkDeepLink() {
+            const startParam = tg.initDataUnsafe?.start_param;
+            if (!startParam || !startParam.startsWith('ey')) return;
+
+            const event = decodeInvitePayload(startParam);
+            if (!event || !event.id) return;
+
+            document.getElementById('inviterName').innerText = `${event.creator} зовет тебя на рыбалку!`;
+            document.getElementById('inviteEventDetails').innerText = `Локация: ${event.title} • ${event.date} в ${event.time}`;
+            document.getElementById('inviteGoalText').innerText = `"${event.goal || 'Выбить максимум ТГ!'}"`;
+            document.getElementById('inviteReceivedModal').classList.remove('hidden');
+
+            document.getElementById('acceptInviteBtn').onclick = async function() {
+                const events = JSON.parse(localStorage.getItem('joint_events') || '[]');
+                let localEvent = events.find(x => x.id === event.id);
+
+                if (!localEvent) {
+                    localEvent = { ...event, participants: [] };
+                    events.unshift(localEvent);
+                }
+
+                if (!localEvent.participants.includes(userName)) {
+                    localEvent.participants.push(userName);
+                }
+                localStorage.setItem('joint_events', JSON.stringify(events));
+
+                // Уведомление организатору. Требует BOT_TOKEN в защищённом backend;
+                // из публичного HTML токен намеренно не используется.
+                document.getElementById('inviteReceivedModal').classList.add('hidden');
+                navEventsBtn.click();
+            };
+
+            document.getElementById('rejectInviteBtn').onclick = function() {
+                document.getElementById('inviteReceivedModal').classList.add('hidden');
+            };
         }
 
         // Профиль
@@ -1204,32 +1252,20 @@
             if (status === "ignore") statusText = "⚪ Игнор";
             if (status === "date") statusText = "🟡 Выгулял рыбку 🎣";
 
-            const textMessage = `🎯 **НОВЫЙ ПОДХОД ЗАФИКСИРОВАН!**\n\n` +
-                                `👤 **Девушка:** ${target}\n` +
-                                `✈️ **Telegram:** ${telegram ? telegram : "Не указан"}\n` +
-                                `⭐ **Оценка:** ${rating}/10\n` +
-                                `📌 **Результат:** ${statusText}\n` +
-                                `📝 **Заметка:** ${note ? note : "Нет"}\n` +
-                                `🕒 **Время:** ${timeStr} (${dateStr})\n\n` +
-                                `__Запись сохранена в Календарь__`;
+            // Отправляем запись самому боту через штатный WebApp API.
+            // Это безопаснее, чем хранить BOT_TOKEN в публичном HTML.
+            if (tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    type: 'approach',
+                    target,
+                    telegram,
+                    status,
+                    rating,
+                    note
+                }));
+            }
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-
-            if (userId) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: userId,
-                            text: textMessage,
-                            parse_mode: 'Markdown'
-                        })
-                    });
-                } catch (err) {
-                    console.error("Ошибка отправки API:", err);
-                }
-            }
 
             document.getElementById('targetInput').value = '';
             document.getElementById('tgInput').value = '';
